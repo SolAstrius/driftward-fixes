@@ -1,0 +1,23 @@
+plugins {
+    id 'net.neoforged.moddev' version '2.0.78'
+}
+
+version = '1.0'
+group = 'ink.astrius'
+base { archivesName = 'driftward-fixes' }
+
+java.toolchain.languageVersion = JavaLanguageVersion.of(21)
+
+repositories { mavenCentral() }
+
+neoForge {
+    version = '21.1.233'
+    mods {
+        driftwardfixes { sourceSet sourceSets.main }
+    }
+}
+
+dependencies {
+    compileOnly files('libs/crittersandcompanions.jar')
+    compileOnly files('libs/supplementaries.jar')
+}
