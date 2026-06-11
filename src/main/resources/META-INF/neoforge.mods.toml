@@ -4,9 +4,9 @@ license = "MIT"
 
 [[mods]]
 modId = "driftwardfixes"
-version = "1.2"
+version = "1.4"
 displayName = "Driftward Fixes"
-description = "Mixin bugfixes + integrations for the Driftward modpack: C&C grappling-hook NPE crash, Supplementaries bee-movie text rendering, and temperature-dependent Create Aeronautics balloon lift (colder air = more lift, via Thermoo)."
+description = "Mixin bugfixes + integrations for the Driftward modpack: C&C grappling-hook NPE crash, Supplementaries bee-movie text rendering, temperature-dependent Create Aeronautics balloon lift (colder air = more lift, via Thermoo), and a tgbridge<->StyledChat relay so player chat reaches Telegram."
 authors = "Sol (ports by)"
 
 [[mixins]]
@@ -48,4 +48,20 @@ modId = "thermoo"
 type = "optional"
 versionRange = "[0,)"
 ordering = "NONE"
+side = "BOTH"
+
+# ChatRelayMixin re-feeds public chat into tgbridge when StyledChat swallows the
+# ServerChatEvent. Optional: the relay no-ops if either mod is missing.
+[[dependencies.driftwardfixes]]
+modId = "tgbridge"
+type = "optional"
+versionRange = "[0,)"
+ordering = "AFTER"
+side = "BOTH"
+
+[[dependencies.driftwardfixes]]
+modId = "styledchat"
+type = "optional"
+versionRange = "[0,)"
+ordering = "AFTER"
 side = "BOTH"
