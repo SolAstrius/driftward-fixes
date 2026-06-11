@@ -4,7 +4,7 @@ license = "MIT"
 
 [[mods]]
 modId = "driftwardfixes"
-version = "1.0"
+version = "1.1"
 displayName = "Driftward Fixes"
 description = "Mixin bugfixes for the Driftward modpack: C&C grappling-hook NPE crash + Supplementaries bee-movie text rendering. Ported from vanutp's liferooters-smp-fixes."
 authors = "Sol (ports by)"
