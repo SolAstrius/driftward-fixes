@@ -5,3 +5,7 @@
 *.project
 .idea/
 *.iml
+
+# editor swap files
+*.kate-swp
+*.swp
