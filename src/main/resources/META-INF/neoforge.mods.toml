@@ -4,7 +4,7 @@ license = "MIT"
 
 [[mods]]
 modId = "driftwardfixes"
-version = "1.4"
+version = "1.5"
 displayName = "Driftward Fixes"
 description = "Mixin bugfixes + integrations for the Driftward modpack: C&C grappling-hook NPE crash, Supplementaries bee-movie text rendering, temperature-dependent Create Aeronautics balloon lift (colder air = more lift, via Thermoo), and a tgbridge<->StyledChat relay so player chat reaches Telegram."
 authors = "Sol (ports by)"

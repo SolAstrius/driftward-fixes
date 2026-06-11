@@ -60,10 +60,13 @@ public final class TgbridgeChatRelay {
             }
             Object platform = bridgeGetPlatform.invoke(bridge);
             Object sender = platformPlayerToTgbridge.invoke(platform, player);
-            // Forward the raw, signed message body — exactly what tgbridge's own
-            // ServerChatEvent listener would have used. tgbridge wraps it in its
-            // configured telegramFormat and applies replacements.json itself.
-            Object adventureMessage = utilsToAdventure.invoke(null, Component.literal(message.signedContent()));
+            // Forward the DECORATED content: StyledChat's chat-decorator redirect renders
+            // markdown/emoji/links into native text styling here (the message body, without the
+            // "<player>" prefix). tgbridge's MinecraftToTelegramConverter maps those styles to
+            // Telegram entities (bold/italic/underline/strikethrough/spoiler/text_link), so the
+            // formatting shows in Telegram just like in-game. (signedContent() would be the raw
+            // typed string, e.g. "**test**", which Telegram would show verbatim.)
+            Object adventureMessage = utilsToAdventure.invoke(null, message.decoratedContent());
             Object event = eventCtor.newInstance(sender, adventureMessage, null, null, false);
             bridgeOnChatMessage.invoke(bridge, event);
         } catch (Throwable t) {
