@@ -4,13 +4,16 @@ license = "MIT"
 
 [[mods]]
 modId = "driftwardfixes"
-version = "1.1"
+version = "1.2"
 displayName = "Driftward Fixes"
-description = "Mixin bugfixes for the Driftward modpack: C&C grappling-hook NPE crash + Supplementaries bee-movie text rendering. Ported from vanutp's liferooters-smp-fixes."
+description = "Mixin bugfixes + integrations for the Driftward modpack: C&C grappling-hook NPE crash, Supplementaries bee-movie text rendering, and temperature-dependent Create Aeronautics balloon lift (colder air = more lift, via Thermoo)."
 authors = "Sol (ports by)"
 
 [[mixins]]
 config = "driftward-fixes.mixins.json"
+
+[[mixins]]
+config = "driftward-fixes.aeronautics.mixins.json"
 
 [[dependencies.driftwardfixes]]
 modId = "neoforge"
@@ -32,3 +35,17 @@ type = "optional"
 versionRange = "[0,)"
 ordering = "NONE"
 side = "CLIENT"
+
+[[dependencies.driftwardfixes]]
+modId = "aeronautics"
+type = "optional"
+versionRange = "[0,)"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.driftwardfixes]]
+modId = "thermoo"
+type = "optional"
+versionRange = "[0,)"
+ordering = "NONE"
+side = "BOTH"

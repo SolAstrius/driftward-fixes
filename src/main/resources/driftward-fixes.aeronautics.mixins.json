@@ -1,0 +1,8 @@
+{
+  "required": false,
+  "minVersion": "0.8",
+  "package": "ink.astrius.driftwardfixes.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": ["BalloonTemperatureMixin"],
+  "injectors": { "defaultRequire": 1 }
+}

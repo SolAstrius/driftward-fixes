@@ -2,7 +2,7 @@ plugins {
     id 'net.neoforged.moddev' version '2.0.78'
 }
 
-version = '1.1'
+version = '1.2'
 group = 'ink.astrius'
 base { archivesName = 'driftward-fixes' }
 
@@ -22,4 +22,8 @@ dependencies {
     compileOnly files('libs/supplementaries.jar')
     compileOnly files('libs/create.jar')
     compileOnly files('libs/thirst.jar')
+    compileOnly files('libs/aeronautics.jar')
+    compileOnly files('libs/sable.jar')
+    compileOnly files('libs/sable-companion.jar')
+    compileOnly files('libs/thermoo.jar')
 }
