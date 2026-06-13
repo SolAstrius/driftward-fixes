@@ -5,6 +5,7 @@ import com.github.thedeathlycow.thermoo.api.environment.component.EnvironmentCom
 import com.github.thedeathlycow.thermoo.api.environment.component.TemperatureRecordComponent;
 import com.github.thedeathlycow.thermoo.api.util.TemperatureRecord;
 import com.github.thedeathlycow.thermoo.api.util.TemperatureUnit;
+import dev.eriksonn.aeronautics.content.blocks.hot_air.balloon.Balloon;
 import dev.eriksonn.aeronautics.content.blocks.hot_air.balloon.ServerBalloon;
 import dev.ryanhcode.sable.Sable;
 import dev.ryanhcode.sable.companion.math.Pose3dc;
@@ -16,7 +17,6 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.Mth;
 import net.minecraft.world.level.Level;
 import org.joml.Vector3dc;
-import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
@@ -35,17 +35,17 @@ public abstract class BalloonTemperatureMixin {
 
     @Shadow private double totalLift;
 
-    // Inherited from the Balloon base class.
-    @Shadow @Final protected Level level;
-    @Shadow protected BlockPos controllerPos;
-
     @Inject(method = "updateGasAmounts", at = @At("TAIL"))
     private void driftward$scaleLiftByTemperature(CallbackInfo ci) {
         if (!Config.BALLOON_TEMPERATURE_ENABLED.get() || this.totalLift == 0.0) {
             return;
         }
+        // level + controllerPos are declared on the Balloon base class; reach them through the
+        // accessor and the public getter rather than @Shadow (inherited fields don't resolve).
+        Level level = ((BalloonAccessor) (Object) this).driftward$level();
+        BlockPos controllerPos = ((Balloon) (Object) this).getControllerPos();
         // The balloon's controllerPos is plot-local; resolve the contraption's real world pose.
-        if (!(Sable.HELPER.getContaining(this.level, (Vec3i) this.controllerPos) instanceof ServerSubLevel subLevel)) {
+        if (!(Sable.HELPER.getContaining(level, (Vec3i) controllerPos) instanceof ServerSubLevel subLevel)) {
             return;
         }
         ServerLevel serverLevel = subLevel.getLevel();
