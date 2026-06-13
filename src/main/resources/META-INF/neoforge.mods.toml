@@ -4,9 +4,9 @@ license = "MIT"
 
 [[mods]]
 modId = "driftwardfixes"
-version = "1.5"
+version = "1.6"
 displayName = "Driftward Fixes"
-description = "Mixin bugfixes + integrations for the Driftward modpack: C&C grappling-hook NPE crash, Supplementaries bee-movie text rendering, temperature-dependent Create Aeronautics balloon lift (colder air = more lift, via Thermoo), and a tgbridge<->StyledChat relay so player chat reaches Telegram."
+description = "Mixin bugfixes + integrations for the Driftward modpack: C&C grappling-hook NPE crash, Supplementaries bee-movie text rendering, temperature-dependent Create Aeronautics balloon lift (colder air = more lift, via Thermoo), a tgbridge<->StyledChat relay so player chat reaches Telegram, and cactus placement that tolerates #c:glass_panes neighbours (greenhouse builds)."
 authors = "Sol (ports by)"
 
 [[mixins]]
@@ -14,6 +14,9 @@ config = "driftward-fixes.mixins.json"
 
 [[mixins]]
 config = "driftward-fixes.aeronautics.mixins.json"
+
+[[mixins]]
+config = "driftward-fixes.gameplay.mixins.json"
 
 [[dependencies.driftwardfixes]]
 modId = "neoforge"
