@@ -1,14 +1,10 @@
 package ink.astrius.driftwardfixes.integration;
 
-import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.PlayerChatMessage;
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.fml.ModList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Method;
 
 /**
  * Bridges public player chat to tgbridge when a chat-formatting mod swallows it.
@@ -20,25 +16,18 @@ import java.lang.reflect.Method;
  * separate hooks and keep working. See {@code ChatRelayMixin}.
  *
  * <p>This re-feeds the message into tgbridge from {@code broadcastChatMessage} (where StyledChat
- * only injects, never cancels) by calling {@code TelegramBridge.INSTANCE.onChatMessage(...)}.
- * Everything is reflective so the mod carries no tgbridge compile dependency and silently no-ops
- * if tgbridge (or StyledChat) is absent.
+ * only injects, never cancels) via tgbridge's documented public API
+ * ({@code TelegramBridge.INSTANCE.onChatMessage(...)}). The actual API calls live in
+ * {@link TgbridgeChatForwarder}, which is only loaded once tgbridge is confirmed present, so this
+ * gate carries no hard tgbridge dependency and silently no-ops if tgbridge (or StyledChat) is
+ * absent — the same optionality the old reflective implementation had, now type-checked at compile
+ * time against the vendored {@code libs/tgbridge.jar}.
  */
 public final class TgbridgeChatRelay {
     private static final Logger LOGGER = LoggerFactory.getLogger("driftward-fixes/tgbridge-relay");
 
     private static volatile boolean initialized;
     private static boolean enabled;
-    private static boolean warned;
-
-    // Cached reflective handles (resolved once in init()).
-    private static Object companion;
-    private static Method companionGetInstance;
-    private static Method bridgeGetPlatform;
-    private static Method platformPlayerToTgbridge;
-    private static Method utilsToAdventure;
-    private static Method bridgeOnChatMessage;
-    private static Constructor<?> eventCtor;
 
     private TgbridgeChatRelay() {}
 
@@ -53,25 +42,8 @@ public final class TgbridgeChatRelay {
         if (!enabled) {
             return;
         }
-        try {
-            Object bridge = companionGetInstance.invoke(companion);
-            if (bridge == null) {
-                return;
-            }
-            Object platform = bridgeGetPlatform.invoke(bridge);
-            Object sender = platformPlayerToTgbridge.invoke(platform, player);
-            // Forward the DECORATED content: StyledChat's chat-decorator redirect renders
-            // markdown/emoji/links into native text styling here (the message body, without the
-            // "<player>" prefix). tgbridge's MinecraftToTelegramConverter maps those styles to
-            // Telegram entities (bold/italic/underline/strikethrough/spoiler/text_link), so the
-            // formatting shows in Telegram just like in-game. (signedContent() would be the raw
-            // typed string, e.g. "**test**", which Telegram would show verbatim.)
-            Object adventureMessage = utilsToAdventure.invoke(null, message.decoratedContent());
-            Object event = eventCtor.newInstance(sender, adventureMessage, null, null, false);
-            bridgeOnChatMessage.invoke(bridge, event);
-        } catch (Throwable t) {
-            warnOnce("Failed to relay chat message to tgbridge", t);
-        }
+        // Touches tgbridge types — only reached (and only class-loaded) when tgbridge is present.
+        TgbridgeChatForwarder.forward(player, message);
     }
 
     private static synchronized void init() {
@@ -79,53 +51,13 @@ public final class TgbridgeChatRelay {
             return;
         }
         initialized = true;
-        try {
-            ModList mods = ModList.get();
-            if (!mods.isLoaded("tgbridge")) {
-                return;
-            }
-            // Only relay when a chat mod is actually intercepting the event; otherwise
-            // tgbridge's native listener handles chat and we'd forward every message twice.
-            if (!mods.isLoaded("styledchat")) {
-                return;
-            }
-
-            Class<?> bridgeCls = Class.forName("dev.vanutp.tgbridge.common.TelegramBridge");
-            companion = bridgeCls.getField("Companion").get(null);
-            companionGetInstance = companion.getClass().getMethod("getINSTANCE");
-            bridgeGetPlatform = bridgeCls.getMethod("getPlatform");
-
-            Class<?> platformCls = Class.forName("dev.vanutp.tgbridge.common.IPlatform");
-            platformPlayerToTgbridge = platformCls.getMethod("playerToTgbridge", Object.class);
-
-            Class<?> utilsCls = Class.forName("dev.vanutp.tgbridge.forge.UtilsKt");
-            utilsToAdventure = utilsCls.getMethod("toAdventure", Component.class);
-
-            Class<?> eventCls = Class.forName("dev.vanutp.tgbridge.common.models.TgbridgeMcChatMessageEvent");
-            bridgeOnChatMessage = bridgeCls.getMethod("onChatMessage", eventCls);
-            // Primary constructor: (ITgbridgePlayer sender, Component message,
-            //                       String chatName, Object originalEvent, boolean isCancelled)
-            for (Constructor<?> c : eventCls.getConstructors()) {
-                if (c.getParameterCount() == 5) {
-                    eventCtor = c;
-                    break;
-                }
-            }
-            if (eventCtor == null) {
-                throw new NoSuchMethodException("TgbridgeMcChatMessageEvent 5-arg constructor not found");
-            }
-
-            enabled = true;
+        ModList mods = ModList.get();
+        // tgbridge must be present (TgbridgeChatForwarder references its classes). StyledChat must
+        // also be present: without it tgbridge's native ServerChatEvent listener handles chat and
+        // relaying here too would post every message to Telegram twice.
+        enabled = mods.isLoaded("tgbridge") && mods.isLoaded("styledchat");
+        if (enabled) {
             LOGGER.info("tgbridge chat relay enabled (StyledChat compatibility bridge)");
-        } catch (Throwable t) {
-            warnOnce("Could not wire up tgbridge chat relay; player chat will not reach Telegram", t);
-        }
-    }
-
-    private static void warnOnce(String message, Throwable t) {
-        if (!warned) {
-            warned = true;
-            LOGGER.warn(message, t);
         }
     }
 }

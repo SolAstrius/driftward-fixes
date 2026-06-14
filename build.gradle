@@ -2,7 +2,7 @@ plugins {
     id 'net.neoforged.moddev' version '2.0.78'
 }
 
-version = '1.7'
+version = '1.8'
 group = 'ink.astrius'
 base { archivesName = 'driftward-fixes' }
 
@@ -26,4 +26,9 @@ dependencies {
     compileOnly files('libs/sable.jar')
     compileOnly files('libs/sable-companion.jar')
     compileOnly files('libs/thermoo.jar')
+    // tgbridge's NeoForge build, vendored for the StyledChat chat relay. compileOnly: the relay
+    // calls tgbridge's documented public API (TelegramBridge#onChatMessage) against the real
+    // shaded types, so it must be the neoforge jar (adventure is relocated to tgbridge.shaded.*),
+    // not the maven `dev.vanutp.tgbridge:common` artifact whose net.kyori types wouldn't link.
+    compileOnly files('libs/tgbridge.jar')
 }
